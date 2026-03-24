@@ -1,0 +1,57 @@
+name: 忆蚀 Subliminal 玩家舆情日报
+
+on:
+  # 每天北京时间 08:00 触发（UTC 00:00 = CST 08:00）
+  schedule:
+    - cron: '0 0 * * *'
+
+  # 允许手动触发（方便测试）
+  workflow_dispatch:
+    inputs:
+      test_mode:
+        description: '测试模式（不发送真实邮件）'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
+
+jobs:
+  generate-and-send-report:
+    name: 生成并发送舆情日报
+    runs-on: ubuntu-latest
+    timeout-minutes: 30        # 最多运行 30 分钟
+
+    steps:
+      - name: ⬇️ 检出代码
+        uses: actions/checkout@v4
+
+      - name: 🐍 配置 Python 环境
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: 📦 安装依赖
+        run: pip install -r requirements.txt
+
+      - name: 🚀 运行舆情日报脚本
+        env:
+          ANTHROPIC_API_KEY:       ${{ secrets.ANTHROPIC_API_KEY }}
+          GMAIL_SENDER_EMAIL:      ${{ secrets.GMAIL_SENDER_EMAIL }}
+          GMAIL_APP_PASSWORD:      ${{ secrets.GMAIL_APP_PASSWORD }}
+          REPORT_RECIPIENT_EMAIL:  ${{ secrets.REPORT_RECIPIENT_EMAIL }}
+          TEST_MODE:               ${{ inputs.test_mode || 'false' }}
+        run: python scripts/daily_report.py
+
+      # ── 失败时发出警告邮件（可选，配置 SLACK_WEBHOOK 启用） ──
+      - name: 🔔 失败通知
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { context } = require('@actions/github');
+            console.log(`❌ 日报任务失败！
+            Run URL: https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}
+            请检查 Secrets 配置是否正确。`);
