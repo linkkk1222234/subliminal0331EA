@@ -1,11 +1,8 @@
 name: 忆蚀 Subliminal 玩家舆情日报
 
 on:
-  # 每天北京时间 08:00 触发（UTC 00:00 = CST 08:00）
   schedule:
     - cron: '0 0 * * *'
-
-  # 允许手动触发（方便测试）
   workflow_dispatch:
     inputs:
       test_mode:
@@ -21,7 +18,7 @@ jobs:
   generate-and-send-report:
     name: 生成并发送舆情日报
     runs-on: ubuntu-latest
-    timeout-minutes: 30        # 最多运行 30 分钟
+    timeout-minutes: 30
 
     steps:
       - name: ⬇️ 检出代码
@@ -45,8 +42,7 @@ jobs:
           TEST_MODE:               ${{ inputs.test_mode || 'false' }}
         run: python scripts/daily_report.py
 
-- name: 🔔 失败通知
+      - name: 🔔 失败通知
         if: failure()
         run: |
           echo "❌ 日报任务失败，请检查 Actions 日志排查原因"
-          echo "常见原因：Secrets 未配置或填写有误"
