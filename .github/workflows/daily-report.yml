@@ -45,13 +45,8 @@ jobs:
           TEST_MODE:               ${{ inputs.test_mode || 'false' }}
         run: python scripts/daily_report.py
 
-      # ── 失败时发出警告邮件（可选，配置 SLACK_WEBHOOK 启用） ──
-      - name: 🔔 失败通知
+- name: 🔔 失败通知
         if: failure()
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const { context } = require('@actions/github');
-            console.log(`❌ 日报任务失败！
-            Run URL: https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}
-            请检查 Secrets 配置是否正确。`);
+        run: |
+          echo "❌ 日报任务失败，请检查 Actions 日志排查原因"
+          echo "常见原因：Secrets 未配置或填写有误"
