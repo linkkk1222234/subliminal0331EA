@@ -42,7 +42,7 @@ client = OpenAI(api_key=DEEPSEEK_API_KEY, base_url="https://api.deepseek.com")
 def search_web(query, max_results=5):
     try:
         with DDGS() as ddgs:
-            results = list(ddgs.text(query, timelimit="d", max_results=max_results, safesearch="off"))
+            results = list(ddgs.text(query, timelimit="w", max_results=max_results, safesearch="off"))
         return results
     except Exception as e:
         print(f"  ⚠️ 搜索失败 [{query[:40]}]: {e}")
