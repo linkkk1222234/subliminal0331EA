@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-忆蚀 Subliminal 近七天玩家舆情简报
-聚焦过去七天内海内外TOP10负面评价，含原文链接和时间验证
+忆蚀 Subliminal 24h玩家舆情简报
+聚焦过去24小时内海内外TOP10负面评价，含原文链接和时间验证
 """
 
 import os
@@ -42,7 +42,7 @@ client = OpenAI(api_key=DEEPSEEK_API_KEY, base_url="https://api.deepseek.com")
 def search_web(query, max_results=5):
     try:
         with DDGS() as ddgs:
-            results = list(ddgs.text(query, timelimit="w", max_results=max_results, safesearch="off"))
+            results = list(ddgs.text(query, timelimit="d", max_results=max_results, safesearch="off"))
         return results
     except Exception as e:
         print(f"  ⚠️ 搜索失败 [{query[:40]}]: {e}")
@@ -98,16 +98,14 @@ def analyze_top10(raw_results):
     ])
 
     prompt = f"""
-你是游戏舆情分析师，分析《{GAME_NAME_ZH}》（{GAME_NAME_EN}）过去七天内玩家负面反馈。
+你是游戏舆情分析师，分析《{GAME_NAME_ZH}》（{GAME_NAME_EN}）过去24小时内玩家负面反馈。
 今天是 {REPORT_DATE}（北京时间）。
 
 请从以下搜索结果中：
 1. 只保留与《{GAME_NAME_ZH}》或《{GAME_NAME_EN}》明确相关的负面内容
-2. 按发布时间从新到旧排序（rank 1 = 最新）
-3. 优先选择有玩家原话、有链接、问题严重的内容
-4. 识别是否来自合作主播：{kol_names}
-5. 标注每条内容的发布时间
-6. 验证时间是否在最近七天内
+2. 优先选择有玩家原话、有链接、问题严重的内容
+3. 识别是否来自合作主播：{kol_names}
+4. 验证时间是否在24h内
 
 选出TOP10负面评价，严格输出以下JSON，不要有任何其他内容：
 
@@ -123,7 +121,7 @@ def analyze_top10(raw_results):
       "original_quote": "玩家原话，尽量完整保留",
       "summary": "一句话总结核心问题",
       "url": "原文链接（从搜索结果链接字段取，必填）",
-      "time_verified": "最近七天内确认/时间未确认",
+      "time_verified": "24h内确认/时间未确认",
       "time_note": "如：今日发布/昨日/无时间标记"
     }}
   ],
@@ -182,9 +180,9 @@ def build_html(top10, meta):
         icon = issue_icons.get(itype, "⚠️")
         url = item.get("url", "")
         tv = item.get("time_verified", "时间未确认")
-        tbg = "#f0fdf4" if tv == "最近七天内确认" else "#f9fafb"
-        tc2 = "#16a34a" if tv == "最近七天内确认" else "#6b7280"
-        ti = "✅" if tv == "最近七天内确认" else "⚠️"
+        tbg = "#f0fdf4" if tv == "24h内确认" else "#f9fafb"
+        tc2 = "#16a34a" if tv == "24h内确认" else "#6b7280"
+        ti = "✅" if tv == "24h内确认" else "⚠️"
         kol = f'<span style="background:#7c3aed;color:#fff;font-size:10px;padding:2px 8px;border-radius:10px;margin-left:6px;">⭐ {item.get("kol_name","")}</span>' if item.get("is_kol") and item.get("kol_name") else ""
         link = f'<a href="{url}" target="_blank" style="display:inline-block;background:#1d4ed8;color:#fff;font-size:12px;padding:5px 14px;border-radius:6px;text-decoration:none;">🔗 查看原文</a>' if url else '<span style="font-size:12px;color:#9ca3af;">暂无链接</span>'
 
@@ -206,7 +204,7 @@ def build_html(top10, meta):
         </div>"""
 
     if not cards:
-        cards = '<div style="padding:20px;text-align:center;color:#6b7280;background:#f9fafb;border-radius:8px;">过去七天内暂未检索到明显负面评价</div>'
+        cards = '<div style="padding:20px;text-align:center;color:#6b7280;background:#f9fafb;border-radius:8px;">过去24小时内暂未检索到明显负面评价</div>'
 
     return f"""<!DOCTYPE html>
 <html lang="zh-CN">
@@ -217,7 +215,7 @@ def build_html(top10, meta):
   <div style="background:linear-gradient(135deg,#1e1b4b 0%,#7c2d12 100%);border-radius:12px;padding:24px 28px;margin-bottom:16px;color:#fff;">
     <div style="font-size:11px;opacity:0.7;margin-bottom:4px;letter-spacing:1px;">INFINI FUN · 负面舆情监控</div>
     <div style="font-size:22px;font-weight:700;margin-bottom:4px;">《忆蚀 Subliminal》</div>
-    <div style="font-size:13px;opacity:0.85;">最近七天玩家负面评价 TOP10 · {REPORT_DATE}</div>
+    <div style="font-size:13px;opacity:0.85;">24h玩家负面评价 TOP10 · {REPORT_DATE}</div>
     <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;">
       <div style="background:rgba(255,255,255,0.15);border-radius:8px;padding:7px 14px;">
         <div style="font-size:10px;opacity:0.7;">检索到负面评价</div>
@@ -225,13 +223,13 @@ def build_html(top10, meta):
       </div>
       <div style="background:rgba(255,255,255,0.15);border-radius:8px;padding:7px 14px;">
         <div style="font-size:10px;opacity:0.7;">数据范围</div>
-        <div style="font-size:13px;font-weight:600;">过去 近七天</div>
+        <div style="font-size:13px;font-weight:600;">过去 24 小时</div>
       </div>
     </div>
   </div>
 
   <div style="background:#fefce8;border:1px solid #fde68a;border-radius:8px;padding:10px 16px;margin-bottom:16px;font-size:12px;color:#92400e;">
-    📊 {meta.get("search_coverage","")}｜{meta.get("data_note","")}｜✅ 已过滤最近七天内内容
+    📊 {meta.get("search_coverage","")}｜{meta.get("data_note","")}｜✅ 已过滤24h内内容
   </div>
 
   <div style="background:#fff;border-radius:12px;padding:20px;margin-bottom:16px;border:1px solid #e2e8f0;">
@@ -252,10 +250,10 @@ def send_gmail(html_body, top10):
     severe_count = sum(1 for x in top10 if x.get("severity") == "严重")
     tag = f" 🚨 {severe_count}条严重" if severe_count else ""
     msg = MIMEMultipart("alternative")
-    msg["Subject"] = f"【忆蚀-{REPORT_DATE_SHORT}-最近七天玩家舆情简报】{tag}"
+    msg["Subject"] = f"【忆蚀-{REPORT_DATE_SHORT}-24h玩家舆情简报】{tag}"
     msg["From"]    = f"忆蚀舆情监控 <{SENDER_EMAIL}>"
     msg["To"]      = RECIPIENT_EMAIL
-    plain = f"忆蚀 最近七天负面简报 {REPORT_DATE}\n\n"
+    plain = f"忆蚀 24h负面简报 {REPORT_DATE}\n\n"
     for x in top10:
         plain += f"#{x.get('rank')} [{x.get('platform')}] {x.get('summary')}\n原文：{x.get('url','无')}\n\n"
     msg.attach(MIMEText(plain, "plain", "utf-8"))
@@ -269,7 +267,7 @@ def send_gmail(html_body, top10):
 
 
 def main():
-    print(f"\n{'='*60}\n  忆蚀 最近七天负面舆情简报\n  {REPORT_DATE}\n{'='*60}\n")
+    print(f"\n{'='*60}\n  忆蚀 24h负面舆情简报\n  {REPORT_DATE}\n{'='*60}\n")
     raw = collect_negative_feedback()
     top10, meta = analyze_top10(raw)
     html = build_html(top10, meta)
