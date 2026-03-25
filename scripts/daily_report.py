@@ -427,7 +427,6 @@ def build_html(data):
 
     <!-- Logo + 日期 行 -->
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
-      <img src="{LOGO_B64}" alt="YOKAVERSE" style="height:28px;opacity:0.9;">
       <span style="font-size:11px;color:rgba(255,255,255,0.45);letter-spacing:1px;">PLAYER INSIGHT REPORT</span>
     </div>
 
