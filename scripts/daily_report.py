@@ -261,7 +261,8 @@ def send_gmail(html_body, top10):
     print(f"📧 发送中...")
     with smtplib.SMTP_SSL("smtp.gmail.com", 465) as s:
         s.login(SENDER_EMAIL, GMAIL_APP_PASSWORD)
-        s.sendmail(SENDER_EMAIL, RECIPIENT_EMAIL, msg.as_bytes())
+        recipients = [r.strip() for r in RECIPIENT_EMAIL.split(",")]
+        s.sendmail(SENDER_EMAIL, recipients, msg.as_bytes())
     print("✅ 发送成功！")
 
 
