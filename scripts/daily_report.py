@@ -292,6 +292,8 @@ def build_html_email(report: dict) -> str:
     # ── 性能问题 ─────────────────────────────────────────────
     perf_issues_html = ""
     for issue in perf.get("issues", []):
+        if isinstance(issue, str):
+            continue
         platforms = "、".join(issue.get("platforms_affected", []))
         quote = issue.get("sample_quote", "")
         quote_html = f'<blockquote style="margin:8px 0 0;padding:8px 12px;background:#fef3c7;border-left:3px solid #f59e0b;color:#92400e;font-size:13px;border-radius:0 4px 4px 0;">"{quote}"</blockquote>' if quote else ""
